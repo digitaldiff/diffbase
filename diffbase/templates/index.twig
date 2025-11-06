@@ -1,0 +1,74 @@
+{% extends "_layouts/cp" %}
+{% set title = "diff. base module" %}
+{% set selectedSubnavItem = 'diffbase' %}
+{% set crumbs = [
+  { label: "Einstellungen", url: url('settings') },
+  { label: "DiffBase", url: url('diffbase') }
+] %}
+
+{% block content %}
+  <div class="grid">
+    <div class="item" data-colspan="2">
+
+      {% if settings.apiKey %}
+        <div class="field">
+          <div class="heading">
+            <label>API-Key</label>
+            <div class="instructions">
+              <p>Verwenden Sie diesen Key für API-Anfragen.</p>
+            </div>
+          </div>
+          <div class="input">
+            <div class="flex" style="gap: 10px; align-items: center;">
+              <input type="text" value="{{ settings.apiKey }}" readonly class="text fullwidth" id="apiKeyField">
+
+              <button type="button" class="btn secondary" onclick="copyApiKey()">
+                Kopieren
+              </button>
+
+              <form method="post" action="{{ actionUrl('diffbase/cp/generate-api-key') }}" style="display: inline;">
+                {{ csrfInput() }}
+                {{ redirectInput('diffbase') }}
+                <button type="submit" class="btn submit">
+                  {% if settings.apiKey %}
+                    Neuen API-Key generieren
+                  {% else %}
+                    API-Key generieren
+                  {% endif %}
+                </button>
+              </form>
+
+              <a href="{{ siteUrl }}api/info?key={{ settings.apiKey }}" class="view-btn btn" target="_blank">
+                {{ svg('@appicons/external-link.svg') }}
+                API-Endpunkt aufrufen
+              </a>
+
+
+            </div>
+          </div>
+        </div>
+
+      {% endif %}
+
+      <hr>
+    </div>
+  </div>
+
+  <script>
+    function copyApiKey() {
+      const field = document.getElementById('apiKeyField');
+      field.select();
+      document.execCommand('copy');
+
+      Craft.cp.displayNotice('API-Key in Zwischenablage kopiert');
+    }
+  </script>
+{% endblock %}
+
+{#              <form method="post" action="{{ actionUrl('diffbase/cp/delete-api-key') }}" style="display: inline; margin: 0;">
+                {{ csrfInput() }}
+                {{ redirectInput('diffbase') }}
+                <button type="submit" class="btn secondary" onclick="return confirm('API-Key wirklich löschen?')">
+                  Löschen
+                </button>
+              </form>#}
