@@ -27,7 +27,8 @@ class ApiController extends Controller
             'sites' => $this->getSitesInfo(),
             'queue' => $this->getQueueInfo(),
             'mail' => $this->getMailInfo(),
-            'formie' => $this->getFormieInfo()
+            'formie' => $this->getFormieInfo(),
+            'updates' => $this->getUpdatesInfo()
         ]);
     }
 
@@ -121,7 +122,22 @@ class ApiController extends Controller
                 'name' => $plugin->name,
                 'version' => $plugin->getVersion(),
                 'enabled' => Craft::$app->getPlugins()->isPluginEnabled($plugin->handle),
-                'installed' => $plugin->isInstalled
+                'installed' => $plugin->isInstalled,
+                'update_pending' => Craft::$app->getPlugins()->isPluginUpdatePending($plugin),
+                'version_changed' => Craft::$app->getPlugins()->hasPluginVersionNumberChanged($plugin),
+                'schema_version' => $plugin->schemaVersion,
+                'developer' => $plugin->developer ?? null,
+                'developer_url' => $plugin->developerUrl ?? null,
+                'description' => $plugin->description ?? null,
+                'documentation_url' => $plugin->documentationUrl ?? null,
+                'package_name' => $plugin->packageName ?? null,
+                'edition' => $pluginInfo['edition'] ?? null,
+                'has_cp_settings' => $pluginInfo['hasCpSettings'] ?? false,
+                'license_key_status' => $pluginInfo['licenseKeyStatus'] ?? null,
+                'is_trial' => $pluginInfo['isTrial'] ?? false,
+                'upgrade_available' => $pluginInfo['upgradeAvailable'] ?? false,
+                'has_issues' => Craft::$app->getPlugins()->hasIssues($plugin->handle),
+                'update_available' => $plugin->upgradeAvailable ?? null
             ];
         }
 
@@ -140,7 +156,7 @@ class ApiController extends Controller
 
             $moduleData = [
                 'handle' => $moduleId
-                ];
+            ];
 
             $modules[] = $moduleData;
         }
@@ -357,6 +373,113 @@ class ApiController extends Controller
                 return [];
         }
     }
+
+    private function getUpdatesInfo(): array
+    {
+        try {
+            $rawUpdates = Craft::$app->getUpdates()->getUpdates(true);
+
+            return [
+                'craft' => $this->processCraftUpdates($rawUpdates->cms ?? null),
+                'plugins' => $this->processPluginUpdates($rawUpdates->plugins ?? []),
+                'summary' => $this->getUpdatesSummary($rawUpdates)
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => 'Could not load update info: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    private function processCraftUpdates($cmsUpdate): array
+    {
+        if (!$cmsUpdate || !($cmsUpdate instanceof \craft\models\Update)) {
+            return [
+                'update_available' => false,
+                'current_version' => Craft::$app->getVersion(),
+            ];
+        }
+
+        $hasUpdates = !empty($cmsUpdate->releases);
+        $latestRelease = $hasUpdates ? $cmsUpdate->releases[0] : null;
+
+        return [
+            'update_available' => $hasUpdates,
+            'current_version' => Craft::$app->getVersion(),
+            'latest_version' => $latestRelease->version ?? null,
+            'latest_release_date' => $latestRelease->date ?? null,
+            'critical_update' => $latestRelease->critical ?? false,
+            'status' => $cmsUpdate->status ?? 'unknown',
+            'package_name' => $cmsUpdate->packageName ?? 'craftcms/cms',
+            'php_constraint' => $cmsUpdate->phpConstraint ?? null,
+            'total_releases' => count($cmsUpdate->releases ?? []),
+            'releases' => array_slice($cmsUpdate->releases ?? [], 0, 3)
+        ];
+    }
+
+    private function processPluginUpdates(array $pluginsData): array
+    {
+        $processedPlugins = [];
+
+        foreach ($pluginsData as $handle => $pluginUpdate) {
+            if (!($pluginUpdate instanceof \craft\models\Update)) {
+                continue;
+            }
+
+            $hasUpdates = !empty($pluginUpdate->releases);
+            $latestRelease = $hasUpdates ? $pluginUpdate->releases[0] : null;
+
+            $processedPlugins[$handle] = [
+                'update_available' => $hasUpdates,
+                'latest_version' => $latestRelease->version ?? null,
+                'latest_release_date' => $latestRelease->date ?? null,
+                'critical_update' => $latestRelease->critical ?? false,
+                'status' => $pluginUpdate->status ?? 'unknown',
+                'package_name' => $pluginUpdate->packageName ?? null,
+                'php_constraint' => $pluginUpdate->phpConstraint ?? null,
+//                'total_releases' => count($pluginUpdate->releases ?? []),
+                'abandoned' => $pluginUpdate->abandoned ?? false,
+                'replacement_name' => $pluginUpdate->replacementName ?? null
+            ];
+        }
+
+        return $processedPlugins;
+    }
+
+    private function getUpdatesSummary($rawUpdates): array
+    {
+        $craftHasUpdates = false;
+        $pluginUpdatesCount = 0;
+        $criticalUpdates = 0;
+
+        // Craft Updates prüfen
+        if (isset($rawUpdates->cms) && !empty($rawUpdates->cms->releases)) {
+            $craftHasUpdates = true;
+            if (isset($rawUpdates->cms->releases[0]->critical) && $rawUpdates->cms->releases[0]->critical) {
+                $criticalUpdates++;
+            }
+        }
+
+        // Plugin Updates zählen
+        foreach ($rawUpdates->plugins ?? [] as $pluginUpdate) {
+            if (!empty($pluginUpdate->releases)) {
+                $pluginUpdatesCount++;
+
+                if (isset($pluginUpdate->releases[0]->critical) && $pluginUpdate->releases[0]->critical) {
+                    $criticalUpdates++;
+                }
+            }
+        }
+
+        return [
+            'craft_update_available' => $craftHasUpdates,
+            'plugin_updates_available' => $pluginUpdatesCount,
+            'total_updates_available' => ($craftHasUpdates ? 1 : 0) + $pluginUpdatesCount,
+            'critical_updates_available' => $criticalUpdates,
+            'has_updates' => $craftHasUpdates || $pluginUpdatesCount > 0
+        ];
+    }
+
 
 
 
