@@ -18,6 +18,7 @@ use yii\web\ServerErrorHttpException;
 
 class CpController extends Controller
 {
+
     /**
      * @throws NotSupportedException
      * @throws InvalidConfigException
@@ -30,23 +31,34 @@ class CpController extends Controller
      */
     public function actionIndex(): \yii\web\Response
     {
-        $settings = $this->getSettings();
+        $plugin = Plugin::getInstance();
+        if (!$plugin) {
+            throw new \Exception('Plugin nicht initialisiert');
+        }
+
+        $settings = $plugin->getSettings();
+        if (!$settings) {
+            // Fallback: neue Settings erstellen
+            $settings = new Settings();
+        }
 
         // API-Key automatisch generieren wenn keiner vorhanden
         if (!$settings->apiKey) {
             $settings->apiKey = $settings->generateApiKey();
-            Craft::$app->getProjectConfig()->set('_diffbase.apiKey', $settings->apiKey);
+            Craft::$app->plugins->savePluginSettings($plugin, ['apiKey' => $settings->apiKey]);
             Craft::$app->getSession()->setNotice('API-Key wurde automatisch generiert.');
         }
 
-        return $this->renderTemplate('_diffbase/index', [
+        return $this->renderTemplate('diffbase/index', [
             'settings' => $settings
         ]);
     }
 
     private function getSettings(): Settings
     {
-        return Plugin::getInstance()->getSettings();
+        /** @var Settings $settings */
+        $settings = Plugin::getInstance()->getSettings();
+        return $settings;
     }
 
     /**
@@ -84,10 +96,32 @@ class CpController extends Controller
     {
         $this->requirePostRequest();
 
-        // Settings über Plugin speichern
+        // Settings ber Plugin speichern
         Craft::$app->plugins->savePluginSettings(Plugin::getInstance(), ['apiKey' => null]);
-        Craft::$app->getSession()->setNotice('API-Key wurde gelöscht.');
+        Craft::$app->getSession()->setNotice('API-Key wurde gelscht.');
 
         return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function actionSettings(): \yii\web\Response
+    {
+        $plugin = Plugin::getInstance();
+        if (!$plugin) {
+            throw new \Exception('Plugin nicht initialisiert');
+        }
+
+        $settings = $plugin->getSettings();
+        if (!$settings) {
+            // Fallback: neue Settings erstellen
+            $settings = new Settings();
+        }
+
+        return $this->renderTemplate('diffbase/index', [
+            'plugin' => $plugin,
+            'settings' => $settings,
+        ]);
     }
 }

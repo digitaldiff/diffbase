@@ -55,20 +55,12 @@
   </div>
 
   <script>
-    function copyApiKey() {
-      const field = document.getElementById('apiKeyField');
-      field.select();
-      document.execCommand('copy');
+      function copyApiKey() {
+          const field = document.getElementById('apiKeyField');
+          field.select();
+          document.execCommand('copy');
 
-      Craft.cp.displayNotice('API-Key in Zwischenablage kopiert');
-    }
+          Craft.cp.displayNotice('API-Key in Zwischenablage kopiert');
+      }
   </script>
 {% endblock %}
-
-{#              <form method="post" action="{{ actionUrl('diffbase/cp/delete-api-key') }}" style="display: inline; margin: 0;">
-                {{ csrfInput() }}
-                {{ redirectInput('diffbase') }}
-                <button type="submit" class="btn secondary" onclick="return confirm('API-Key wirklich löschen?')">
-                  Löschen
-                </button>
-              </form>#}

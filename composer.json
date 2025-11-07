@@ -24,7 +24,7 @@
     },
     "extra": {
         "name": "diff. base module",
-        "handle": "_diffbase",
+        "handle": "diffbase",
         "developer": "diff. Kommunikation AG",
         "documentationUrl": "https://github.com/digitaldiff/diffbase/blob/main/README.md",
         "changelogUrl": "https://raw.githubusercontent.com/digitaldiff/diffbase/main/CHANGELOG.md",

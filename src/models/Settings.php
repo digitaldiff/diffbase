@@ -10,13 +10,13 @@ class Settings extends Model
     public function rules(): array
     {
         return [
-            [['apiKey'], 'string', 'max' => 255],
+            ['apiKey', 'string'],
+            ['apiKey', 'default', 'value' => null],
         ];
     }
 
     public function generateApiKey(): string
     {
-        $this->apiKey = bin2hex(random_bytes(32));
-        return $this->apiKey;
+        return bin2hex(random_bytes(32));
     }
 }
