@@ -1,9 +1,8 @@
 {% extends "_layouts/cp" %}
-{% set title = "diff. base module" %}
-{% set selectedSubnavItem = '_diffbase' %}
+{% set title = "diff. base plugin" %}
 {% set crumbs = [
-  { label: "Einstellungen", url: url('settings') },
-  { label: "DiffBase", url: url('_diffbase') }
+  { label: "Settings"|t, url: url('settings') },
+  { label: "diff. base plugin", url: url('diffbase') }
 ] %}
 
 {% block content %}

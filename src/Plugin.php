@@ -24,7 +24,7 @@ use yii\base\Exception;
  * This class handles the initialization of the plugin, including:
  * - Registering template paths
  * - Defining custom URL rules for the site and control panel
- * - Adding a custom navigation item to the control panel
+ * - Adding a custom navigation item to the control panel (admin-only)
  * - Providing a settings model and rendering the settings page
  */
 class Plugin extends BasePlugin
@@ -58,7 +58,7 @@ class Plugin extends BasePlugin
      *
      * This method is called automatically when the plugin is loaded. It sets up
      * aliases, registers template paths, defines URL rules, and adds a control panel
-     * navigation item.
+     * navigation item (visible only to admins).
      */
     public function init(): void
     {
@@ -72,7 +72,7 @@ class Plugin extends BasePlugin
             View::class,
             View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
             function(RegisterTemplateRootsEvent $event) {
-                $event->roots['diffbase'] = __DIR__ . 'src/templates'; // Registers the template directory
+                $event->roots['diffbase'] = __DIR__ . '/templates'; // Registers the template directory
             }
         );
 
@@ -96,17 +96,20 @@ class Plugin extends BasePlugin
             }
         );
 
-        // Add a custom navigation item to the control panel
+        // Add a custom navigation item to the control panel (admin-only)
         Event::on(
             Cp::class,
             Cp::EVENT_REGISTER_CP_NAV_ITEMS,
             function(RegisterCpNavItemsEvent $event) {
-                $event->navItems[] = [
-                    'label' => 'diff. base plugin', // Label for the navigation item
-                    'url' => 'diffbase', // URL for the navigation item
-                    'icon' => '@digitaldiff/diffbase/icon-mask.svg', // Icon for the navigation item
-                    'weight' => 3, // Position in the navigation menu
-                ];
+                // Check if the current user is an admin
+                if (Craft::$app->getUser()->getIsAdmin()) {
+                    $event->navItems[] = [
+                        'label' => 'diff. base plugin', // Label for the navigation item
+                        'url' => 'diffbase', // URL for the navigation item
+                        'icon' => '@digitaldiff/diffbase/icon-mask.svg', // Icon for the navigation item
+                        'order' => 9999, // Position at the bottom of the navigation menu
+                    ];
+                }
             }
         );
     }
