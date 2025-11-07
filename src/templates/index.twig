@@ -1,3 +1,21 @@
+{#
+This Twig template extends the Craft CMS Control Panel layout and provides the interface for the "diff. base plugin" settings page.
+
+Template Details:
+- Displays the current API key if available.
+- Allows users to copy the API key, generate a new one, or access the API endpoint.
+- Includes a JavaScript function for copying the API key to the clipboard.
+
+Variables:
+- `settings.apiKey`: The current API key stored in the plugin settings.
+
+Blocks:
+- `content`: Contains the main content of the settings page, including the API key management interface.
+
+Notes:
+- Ensure the `settings.apiKey` variable is properly passed to the template.
+- The `copyApiKey` JavaScript function uses Craft's `Craft.cp.displayNotice` for user feedback.
+#}
 {% extends "_layouts/cp" %}
 {% set title = "diff. base plugin" %}
 {% set crumbs = [
@@ -32,8 +50,8 @@
                   {% if settings.apiKey %}
                     Neuen API-Key generieren
                   {% else %}
-                    API-Key generieren
                   {% endif %}
+                  API-Key generieren
                 </button>
               </form>
 
@@ -41,12 +59,9 @@
                 {{ svg('@appicons/external-link.svg') }}
                 API-Endpunkt aufrufen
               </a>
-
-
             </div>
           </div>
         </div>
-
       {% endif %}
 
       <hr>
@@ -54,11 +69,15 @@
   </div>
 
   <script>
+      /**
+       * Copies the API key to the clipboard and displays a success notice.
+       */
       function copyApiKey() {
           const field = document.getElementById('apiKeyField');
           field.select();
           document.execCommand('copy');
 
+          // Display a success message using Craft's control panel notice system
           Craft.cp.displayNotice('API-Key in Zwischenablage kopiert');
       }
   </script>

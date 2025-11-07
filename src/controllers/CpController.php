@@ -14,22 +14,30 @@ use yii\base\InvalidConfigException;
 use yii\base\NotSupportedException;
 use yii\web\BadRequestHttpException;
 use yii\web\MethodNotAllowedHttpException;
+use yii\web\Response;
 use yii\web\ServerErrorHttpException;
 
+/**
+ * Class CpController
+ *
+ * This controller handles the Control Panel (CP) actions for the plugin.
+ * It provides methods for managing plugin settings, such as generating or deleting API keys.
+ *
+ * @package digitaldiff\diffbase\controllers
+ */
 class CpController extends Controller
 {
-
     /**
-     * @throws NotSupportedException
-     * @throws InvalidConfigException
-     * @throws MissingComponentException
-     * @throws ServerErrorHttpException
-     * @throws StaleResourceException
-     * @throws BusyResourceException
-     * @throws ErrorException
-     * @throws Exception
+     * Renders the main settings page for the plugin.
+     *
+     * - Initializes the plugin and its settings.
+     * - Automatically generates an API key if none exists.
+     *
+     * @throws MissingComponentException If a required component is missing.
+     * @throws Exception If the plugin is not initialized.
+     * @return Response The rendered settings page.
      */
-    public function actionIndex(): \yii\web\Response
+    public function actionIndex(): Response
     {
         $plugin = Plugin::getInstance();
         if (!$plugin) {
@@ -54,6 +62,11 @@ class CpController extends Controller
         ]);
     }
 
+    /**
+     * Retrieves the plugin settings.
+     *
+     * @return Settings The plugin settings model.
+     */
     private function getSettings(): Settings
     {
         /** @var Settings $settings */
@@ -62,18 +75,24 @@ class CpController extends Controller
     }
 
     /**
-     * @throws NotSupportedException
-     * @throws InvalidConfigException
-     * @throws MissingComponentException
-     * @throws MethodNotAllowedHttpException
-     * @throws ServerErrorHttpException
-     * @throws BadRequestHttpException
-     * @throws StaleResourceException
-     * @throws BusyResourceException
-     * @throws ErrorException
-     * @throws Exception
+     * Generates a new API key and saves it to the plugin settings.
+     *
+     * - Requires a POST request.
+     * - Displays a success notice upon completion.
+     *
+     * @throws NotSupportedException If the operation is not supported.
+     * @throws InvalidConfigException If the configuration is invalid.
+     * @throws MissingComponentException If a required component is missing.
+     * @throws MethodNotAllowedHttpException If the request method is not allowed.
+     * @throws ServerErrorHttpException If a server error occurs.
+     * @throws BadRequestHttpException If the request is invalid.
+     * @throws StaleResourceException If the resource is stale.
+     * @throws BusyResourceException If the resource is busy.
+     * @throws ErrorException If an error occurs during execution.
+     * @throws Exception If an unexpected error occurs.
+     * @return Response A redirect response to the posted URL.
      */
-    public function actionGenerateApiKey(): \yii\web\Response
+    public function actionGenerateApiKey(): Response
     {
         $this->requirePostRequest();
 
@@ -88,25 +107,36 @@ class CpController extends Controller
     }
 
     /**
-     * @throws MissingComponentException
-     * @throws MethodNotAllowedHttpException
-     * @throws BadRequestHttpException
+     * Deletes the existing API key from the plugin settings.
+     *
+     * - Requires a POST request.
+     * - Displays a success notice upon completion.
+     *
+     * @throws MissingComponentException If a required component is missing.
+     * @throws MethodNotAllowedHttpException If the request method is not allowed.
+     * @throws BadRequestHttpException If the request is invalid.
+     * @return Response A redirect response to the posted URL.
      */
-    public function actionDeleteApiKey(): \yii\web\Response
+    public function actionDeleteApiKey(): Response
     {
         $this->requirePostRequest();
 
         // Settings ber Plugin speichern
         Craft::$app->plugins->savePluginSettings(Plugin::getInstance(), ['apiKey' => null]);
-        Craft::$app->getSession()->setNotice('API-Key wurde gelscht.');
+        Craft::$app->getSession()->setNotice('API-Key wurde gelöscht.');
 
         return $this->redirectToPostedUrl();
     }
 
     /**
-     * @throws \Exception
+     * Renders the settings page for the plugin.
+     *
+     * - Initializes the plugin and its settings.
+     *
+     * @throws \Exception If the plugin is not initialized.
+     * @return Response The rendered settings page.
      */
-    public function actionSettings(): \yii\web\Response
+    public function actionSettings(): Response
     {
         $plugin = Plugin::getInstance();
         if (!$plugin) {
