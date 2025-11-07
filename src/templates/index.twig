@@ -1,9 +1,9 @@
 {% extends "_layouts/cp" %}
 {% set title = "diff. base module" %}
-{% set selectedSubnavItem = 'diffbase' %}
+{% set selectedSubnavItem = '_diffbase' %}
 {% set crumbs = [
   { label: "Einstellungen", url: url('settings') },
-  { label: "DiffBase", url: url('diffbase') }
+  { label: "DiffBase", url: url('_diffbase') }
 ] %}
 
 {% block content %}
@@ -26,9 +26,9 @@
                 Kopieren
               </button>
 
-              <form method="post" action="{{ actionUrl('diffbase/cp/generate-api-key') }}" style="display: inline;">
+              <form method="post" action="{{ actionUrl('_diffbase/cp/generate-api-key') }}" style="display: inline;">
                 {{ csrfInput() }}
-                {{ redirectInput('diffbase') }}
+                {{ redirectInput('_diffbase') }}
                 <button type="submit" class="btn submit">
                   {% if settings.apiKey %}
                     Neuen API-Key generieren

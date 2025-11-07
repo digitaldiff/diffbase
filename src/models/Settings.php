@@ -1,5 +1,5 @@
 <?php
-namespace modules\diffbase\models;
+namespace digitaldiff\diffbase\models;
 
 use craft\base\Model;
 

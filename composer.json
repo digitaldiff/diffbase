@@ -1,0 +1,33 @@
+{
+    "name": "digitaldiff/diffbase",
+    "description": "diff. base plugin for Craft CMS",
+    "type": "craft-plugin",
+    "keywords": [],
+    "support": {
+        "docs": "https://github.com/digitaldiff/diffbase/blob/main/README.md",
+        "issues": "https://github.com/digitaldiff/diffbase/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "diff. Kommunikation AG",
+            "homepage": "https://github.com/digitaldiff"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^5.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "digitaldiff\\diffbase\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "diff. base module",
+        "handle": "_diffbase",
+        "developer": "diff. Kommunikation AG",
+        "documentationUrl": "https://github.com/digitaldiff/diffbase/blob/main/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/digitaldiff/diffbase/main/CHANGELOG.md",
+        "class": "digitaldiff\\diffbase\\Plugin"
+    }
+}

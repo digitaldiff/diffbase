@@ -1,12 +1,13 @@
 <?php
-namespace modules\diffbase\controllers;
+namespace digitaldiff\diffbase\controllers;
 
 use Craft;
 use craft\errors\BusyResourceException;
 use craft\errors\MissingComponentException;
 use craft\errors\StaleResourceException;
 use craft\web\Controller;
-use modules\diffbase\models\Settings;
+use digitaldiff\diffbase\models\Settings;
+use digitaldiff\diffbase\Plugin;
 use yii\base\ErrorException;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
@@ -34,13 +35,18 @@ class CpController extends Controller
         // API-Key automatisch generieren wenn keiner vorhanden
         if (!$settings->apiKey) {
             $settings->apiKey = $settings->generateApiKey();
-            Craft::$app->getProjectConfig()->set('diffbase.apiKey', $settings->apiKey);
+            Craft::$app->getProjectConfig()->set('_diffbase.apiKey', $settings->apiKey);
             Craft::$app->getSession()->setNotice('API-Key wurde automatisch generiert.');
         }
 
-        return $this->renderTemplate('diffbase/index', [
+        return $this->renderTemplate('_diffbase/index', [
             'settings' => $settings
         ]);
+    }
+
+    private function getSettings(): Settings
+    {
+        return Plugin::getInstance()->getSettings();
     }
 
     /**
@@ -59,10 +65,11 @@ class CpController extends Controller
     {
         $this->requirePostRequest();
 
-        $settings = $this->getSettings();
+        $settings = Plugin::getInstance()->getSettings();
         $newKey = $settings->generateApiKey();
 
-        Craft::$app->getProjectConfig()->set('diffbase.apiKey', $newKey);
+        // Settings über Plugin speichern
+        Craft::$app->plugins->savePluginSettings(Plugin::getInstance(), ['apiKey' => $newKey]);
         Craft::$app->getSession()->setNotice('Neuer API-Key wurde generiert.');
 
         return $this->redirectToPostedUrl();
@@ -77,17 +84,10 @@ class CpController extends Controller
     {
         $this->requirePostRequest();
 
-        Craft::$app->getProjectConfig()->remove('diffbase.apiKey');
+        // Settings über Plugin speichern
+        Craft::$app->plugins->savePluginSettings(Plugin::getInstance(), ['apiKey' => null]);
         Craft::$app->getSession()->setNotice('API-Key wurde gelöscht.');
 
         return $this->redirectToPostedUrl();
-    }
-
-    private function getSettings(): Settings
-    {
-        $settings = new Settings();
-        $settings->apiKey = Craft::$app->getProjectConfig()->get('diffbase.apiKey');
-
-        return $settings;
     }
 }

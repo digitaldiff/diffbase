@@ -1,8 +1,9 @@
 <?php
-namespace modules\diffbase\controllers;
+namespace digitaldiff\diffbase\controllers;
 
 use Craft;
 use craft\web\Controller;
+use digitaldiff\diffbase\Plugin;
 
 class ApiController extends Controller
 {
@@ -35,8 +36,8 @@ class ApiController extends Controller
     private function validateApiKey(): bool
     {
         $providedKey = Craft::$app->getRequest()->getParam('key');
-        $storedKey = Craft::$app->getProjectConfig()->get('diffbase.apiKey');
-        return $storedKey && $providedKey === $storedKey;
+        $settings = Plugin::getInstance()->getSettings();
+        return $settings->apiKey && $providedKey === $settings->apiKey;
     }
 
     private function getCraftInfo(): array
