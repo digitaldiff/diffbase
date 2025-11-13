@@ -414,7 +414,7 @@ class ApiController extends Controller
             'package_name' => $cmsUpdate->packageName ?? 'craftcms/cms',
             'php_constraint' => $cmsUpdate->phpConstraint ?? null,
             'total_releases' => count($cmsUpdate->releases ?? []),
-            'releases' => array_slice($cmsUpdate->releases ?? [], 0, 3)
+            //'releases' => array_slice($cmsUpdate->releases ?? [], 0, 3)
         ];
     }
 

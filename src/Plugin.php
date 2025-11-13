@@ -81,7 +81,8 @@ class Plugin extends BasePlugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
-                $event->rules['api/info'] = 'diffbase/api/info'; // Maps 'api/info' to the ApiController
+                $event->rules['api/info'] = 'diffbase/api/info'; // Bestehend
+//                $event->rules['actions/diffbase/update/composer-update'] = 'diffbase/update/composer-update'; // Neu
             }
         );
 

@@ -10,5 +10,25 @@ composer require "digitaldiff/diffbase" -w && php craft plugin/install diffbase
 - Test the API Key by going to ```yourdomain.com/api/info?key=```
 - Copy the API key to flow.diff.ch/admin and make a new entry with the API key and the site url 
 
+## Cronjob
+```
+cd /home/<CHANGEME>/public_html/<CRAFT_DIRECTORY> && composer update digitaldiff/diffbase --no-interaction --no-progress
+```
+
 ## Compatibility
 Only works/tested with Craft CMS 5.x
+
+## roadmap / ideas
+- domain check
+- spf check
+- licence infos
+- history (uptime)
+- default dashboard widgets
+  - contact
+  - support
+  - urgent informations
+  - diff.blog
+- start que from dashboard
+- empty cache from dashboard
+- go directly to /admin
+- 
