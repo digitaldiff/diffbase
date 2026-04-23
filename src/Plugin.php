@@ -139,6 +139,12 @@ class Plugin extends BasePlugin
         if (Craft::$app->getRequest()->isCpRequest) {
             $this->_addWidgetsToDashboard();
             $view = Craft::$app->getView();
+
+            if (Craft::$app->getUser()->getIdentity()) {
+                // Registriere Marker.io für Bug-Reporting im gesamten Control Panel
+                $this->_registerMarkerIo();
+            }
+
             /*$view->registerCss(<<<CSS
             #newwidgetmenubtn,
             #widgetManagerBtn {
@@ -147,6 +153,27 @@ class Plugin extends BasePlugin
             CSS);*/
         }
 
+    }
+
+    /**
+     * Registriert Marker.io Bug-Reporting-Tool im Control Panel
+     */
+    private function _registerMarkerIo(): void
+    {
+        $view = Craft::$app->getView();
+
+        // Registriere das Marker.io Script
+        $view->registerJs(<<<JS
+window.markerConfig = {
+    project: '69e9e09e6db37199a4367b01', 
+    source: 'snippet'
+};
+
+!function(e,r,a){if(!e.__Marker){e.__Marker={};var t=[],n={__cs:t};["show","hide","isVisible","capture","cancelCapture","unload","reload","isExtensionInstalled","setReporter","clearReporter","setCustomData","on","off"].forEach(function(e){n[e]=function(){var r=Array.prototype.slice.call(arguments);r.unshift(e),t.push(r)}}),e.Marker=n;var s=r.createElement("script");s.async=1,s.src="https://edge.marker.io/latest/shim.js";var i=r.getElementsByTagName("script")[0];i.parentNode.insertBefore(s,i)}}(window,document);
+JS
+        , \yii\web\View::POS_HEAD);
+
+        Craft::info('Marker.io Bug-Reporting-Tool wurde im Control Panel registriert', __METHOD__);
     }
 
     /**

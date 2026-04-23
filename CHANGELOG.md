@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.4 - 2026-04-23
+
+### Added
+- Marker.io Bug-Reporting-Tool global im Control Panel registriert
+- Tool ist auf allen Backend-Seiten verfügbar für schnelles Feedback und Bug-Reports
+
 ## 1.0.3 - 2026-04-23
 
 ### Fixed
