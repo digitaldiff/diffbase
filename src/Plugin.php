@@ -4,12 +4,16 @@ namespace digitaldiff\diffbase;
 
 use Craft;
 use craft\base\Plugin as BasePlugin;
+use craft\events\RegisterComponentTypesEvent;
+use craft\services\Dashboard;
 use craft\web\UrlManager;
 use craft\events\RegisterUrlRulesEvent;
 use craft\web\twig\variables\Cp;
 use craft\events\RegisterCpNavItemsEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\web\View;
+use digitaldiff\diffbase\widgets\NewsWidget;
+use digitaldiff\diffbase\widgets\SupportWidget;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -17,6 +21,9 @@ use yii\base\Event;
 use digitaldiff\diffbase\models\Settings;
 use digitaldiff\diffbase\services\ApiService;
 use yii\base\Exception;
+
+use digitaldiff\diffbase\widgets\ContactWidget;
+use digitaldiff\diffbase\widgets\MessageWidget;
 
 /**
  * Main plugin class for the "diff. base plugin".
@@ -59,6 +66,7 @@ class Plugin extends BasePlugin
      * This method is called automatically when the plugin is loaded. It sets up
      * aliases, registers template paths, defines URL rules, and adds a control panel
      * navigation item (visible only to admins).
+     * @throws \Throwable
      */
     public function init(): void
     {
@@ -82,6 +90,8 @@ class Plugin extends BasePlugin
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
                 $event->rules['api/info'] = 'diffbase/api/info'; // Bestehend
+                $event->rules['diffbase/support/send-email'] = 'diffbase/support/send-email'; // Support E-Mail
+                $event->rules['support-test'] = ['template' => 'diffbase/support-test']; // Test-Template
 //                $event->rules['actions/diffbase/update/composer-update'] = 'diffbase/update/composer-update'; // Neu
             }
         );
@@ -113,6 +123,69 @@ class Plugin extends BasePlugin
                 }
             }
         );
+
+        Event::on(
+            Dashboard::class,
+            Dashboard::EVENT_REGISTER_WIDGET_TYPES,
+            function (RegisterComponentTypesEvent $event) {
+                $event->types[] = ContactWidget::class;
+                $event->types[] = MessageWidget::class;
+                $event->types[] = NewsWidget::class;
+                $event->types[] = SupportWidget::class;
+            }
+        );
+
+        // Add the widget to the dashboard
+        if (Craft::$app->getRequest()->isCpRequest) {
+            $this->_addWidgetsToDashboard();
+            $view = Craft::$app->getView();
+            /*$view->registerCss(<<<CSS
+            #newwidgetmenubtn,
+            #widgetManagerBtn {
+                display: none;
+            }
+            CSS);*/
+        }
+
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    private function _addWidgetsToDashboard(): void
+    {
+
+        // Ensure a user is logged in before proceeding
+        $user = Craft::$app->getUser()->getIdentity();
+        if (!$user) {
+            Craft::warning('Attempted to add widgets to the dashboard without a logged-in user.', __METHOD__);
+            return;
+        }
+
+        $dashboardService = Craft::$app->getDashboard();
+
+        // Remove all existing widgets
+        $existingWidgets = $dashboardService->getAllWidgets();
+        foreach ($existingWidgets as $widget) {
+            $dashboardService->deleteWidgetById($widget->id);
+        }
+
+        $messageWidget = new MessageWidget();
+        $dashboardService->saveWidget($messageWidget);
+        $dashboardService->changeWidgetColspan($messageWidget->id, 5);
+
+        // Add the Contact Widget
+        $contactWidget = new ContactWidget();
+        $dashboardService->saveWidget($contactWidget);
+
+        // Add the News Widget
+        $newsWidget = new NewsWidget();
+        $dashboardService->saveWidget($newsWidget);
+
+        // Add the Support Widget
+        $supportWidget = new SupportWidget();
+        $dashboardService->saveWidget($supportWidget);
+
     }
 
     /**

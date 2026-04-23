@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Support Email Test - Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        textarea {
+            height: 150px;
+        }
+        button {
+            background-color: #0d78f2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0c6cd6;
+        }
+        .flash {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .flash.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .flash.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .debug {
+            background: #f5f5f5;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .file-info {
+            background: #e8f4f8;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+    <script>
+        function updateFileInfo() {
+            const fileInput = document.getElementById('attachment');
+            const fileInfo = document.getElementById('fileInfo');
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileInfo.innerHTML = `
+                    <strong>Ausgewählte Datei:</strong><br>
+                    Name: ${file.name}<br>
+                    Typ: ${file.type}<br>
+                    Größe: ${(file.size / 1024 / 1024).toFixed(2)} MB
+                `;
+                fileInfo.style.display = 'block';
+            } else {
+                fileInfo.style.display = 'none';
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Support Email Test (mit Debug)</h1>
+
+    {% if craft.app.session.hasFlash('success') %}
+        <div class="flash success">
+            {{ craft.app.session.getFlash('success') }}
+        </div>
+    {% endif %}
+
+    {% if craft.app.session.hasFlash('error') %}
+        <div class="flash error">
+            {{ craft.app.session.getFlash('error') }}
+        </div>
+    {% endif %}
+
+    <div class="debug">
+        <strong>Debug-Info:</strong><br>
+        Action-URL: <code>{{ actionUrl('diffbase/support/send-email') }}</code><br>
+        Mailpit-URL: <a href="http://plugins.ddev.site:8026" target="_blank">http://plugins.ddev.site:8026</a><br>
+        Temp-Pfad: <code>{{ craft.app.path.tempPath }}</code>
+    </div>
+
+    <form method="post" action="{{ actionUrl('diffbase/support/send-email') }}" enctype="multipart/form-data">
+        {{ csrfInput() }}
+
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" value="Test User" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">E-Mail:</label>
+            <input type="email" id="email" name="email" value="test@example.com" required>
+        </div>
+
+        <div class="form-group">
+            <label for="message">Nachricht:</label>
+            <textarea id="message" name="message" required>Dies ist eine Test-Nachricht mit Dateianhang.</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="attachment">Anhang (optional):</label>
+            <input type="file" id="attachment" name="attachment" onchange="updateFileInfo()">
+            <div id="fileInfo" class="file-info" style="display:none;"></div>
+        </div>
+
+        <button type="submit">Senden</button>
+    </form>
+
+    <hr style="margin-top: 40px;">
+    <h3>Wie finde ich den Anhang in Mailpit?</h3>
+    <ol>
+        <li>Öffne Mailpit: <a href="http://plugins.ddev.site:8026" target="_blank">http://plugins.ddev.site:8026</a></li>
+        <li>Klicke auf die E-Mail in der Liste</li>
+        <li>Suche nach dem Tab <strong>"Attachments"</strong> oder einem 📎 Symbol</li>
+        <li>Die Anhänge werden dort aufgelistet und können heruntergeladen werden</li>
+    </ol>
+</body>
+</html>
