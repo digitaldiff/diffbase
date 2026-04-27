@@ -5,11 +5,11 @@ namespace digitaldiff\diffbase\widgets;
 use Craft;
 use craft\base\Widget;
 
-class NewsWidget extends Widget
+class TechWidget extends Widget
 {
     public static function displayName(): string
     {
-        return Craft::t('app', 'diff. News');
+        return Craft::t('app', 'News');
     }
 
     public static function iconPath(): ?string
@@ -19,7 +19,7 @@ class NewsWidget extends Widget
 
     public function getBodyHtml(): ?string
     {
-        $url = 'https://www.diff.ch/cpwidgets/news';
+        $url = 'https://techradar.diff.ch/cpwidgets/news2';
         $html = '';
 
         try {

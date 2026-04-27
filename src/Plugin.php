@@ -14,6 +14,7 @@ use craft\events\RegisterTemplateRootsEvent;
 use craft\web\View;
 use digitaldiff\diffbase\widgets\NewsWidget;
 use digitaldiff\diffbase\widgets\SupportWidget;
+use digitaldiff\diffbase\widgets\TechWidget;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -91,7 +92,6 @@ class Plugin extends BasePlugin
             function (RegisterUrlRulesEvent $event) {
                 $event->rules['api/info'] = 'diffbase/api/info'; // Bestehend
                 $event->rules['diffbase/support/send-email'] = 'diffbase/support/send-email'; // Support E-Mail
-                $event->rules['support-test'] = ['template' => 'diffbase/support-test']; // Test-Template
 //                $event->rules['actions/diffbase/update/composer-update'] = 'diffbase/update/composer-update'; // Neu
             }
         );
@@ -102,7 +102,6 @@ class Plugin extends BasePlugin
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
                 $event->rules['diffbase'] = 'diffbase/cp/index'; // Maps 'diffbase' to CpController::actionIndex
-                $event->rules['diffbase/test'] = 'diffbase/cp/test'; // Maps 'diffbase/test' to CpController::actionTest
                 $event->rules['diffbase/<action:\w+>'] = 'diffbase/cp/<action>'; // Maps dynamic actions
             }
         );
@@ -132,6 +131,7 @@ class Plugin extends BasePlugin
                 $event->types[] = MessageWidget::class;
                 $event->types[] = NewsWidget::class;
                 $event->types[] = SupportWidget::class;
+                $event->types[] = TechWidget::class;
             }
         );
 
@@ -197,9 +197,10 @@ JS
             $dashboardService->deleteWidgetById($widget->id);
         }
 
+        // Add the Messages Widget
         $messageWidget = new MessageWidget();
         $dashboardService->saveWidget($messageWidget);
-        $dashboardService->changeWidgetColspan($messageWidget->id, 5);
+        $dashboardService->changeWidgetColspan($messageWidget->id, 2);
 
         // Add the Contact Widget
         $contactWidget = new ContactWidget();
@@ -209,9 +210,18 @@ JS
         $newsWidget = new NewsWidget();
         $dashboardService->saveWidget($newsWidget);
 
-        // Add the Support Widget
+/*        // Add the Support Widget
         $supportWidget = new SupportWidget();
         $dashboardService->saveWidget($supportWidget);
+        $dashboardService->changeWidgetColspan($supportWidget->id, 1);*/
+
+
+        for ($i = 1; $i <= 5; $i++) {
+            // Add the Tech Widget
+            $techWidget = new TechWidget();
+            $dashboardService->saveWidget($techWidget);
+            $dashboardService->changeWidgetColspan($techWidget->id, 1);
+        }
 
     }
 

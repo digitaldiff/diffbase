@@ -145,7 +145,6 @@ class SupportController extends Controller
             Craft::info('Content-Type: ' . $uploadedFile->type, __METHOD__);
 
             try {
-                // Nutze die einfachere attach-Methode von Swift Mailer
                 $emailMessage->attach($filePath, [
                     'fileName' => $uploadedFile->name,
                     'contentType' => $uploadedFile->type ?: 'application/octet-stream'
