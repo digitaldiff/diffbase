@@ -76,14 +76,12 @@ class Plugin extends BasePlugin
         // Set an alias for the plugin's base path
         Craft::setAlias('@digitaldiff/diffbase', $this->getBasePath());
 
-        // Register the template path for the plugin
-        Event::on(
-            View::class,
-            View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
-            function(RegisterTemplateRootsEvent $event) {
-                $event->roots['diffbase'] = __DIR__ . '/templates'; // Registers the template directory
-            }
-        );
+        // Register the template path for the plugin (site and CP)
+        $templateRoot = function(RegisterTemplateRootsEvent $event) {
+            $event->roots['diffbase'] = __DIR__ . '/templates';
+        };
+        Event::on(View::class, View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS, $templateRoot);
+        Event::on(View::class, View::EVENT_REGISTER_CP_TEMPLATE_ROOTS, $templateRoot);
 
         // Register site URL rules for the plugin's API
         Event::on(
@@ -216,9 +214,9 @@ JS
         $dashboardService->changeWidgetColspan($supportWidget->id, 1);*/
 
 
-        for ($i = 1; $i <= 5; $i++) {
-            // Add the Tech Widget
+        for ($i = 0; $i < 5; $i++) {
             $techWidget = new TechWidget();
+            $techWidget->offset = $i;
             $dashboardService->saveWidget($techWidget);
             $dashboardService->changeWidgetColspan($techWidget->id, 1);
         }

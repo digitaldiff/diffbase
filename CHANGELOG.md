@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- `NewsWidget` and `TechWidget` support a configurable `offset` setting to display different entries when multiple instances are used on the dashboard
+- `NewsWidget` and `TechWidget` now display the entry title as the widget header (parsed from remote response)
+
 ## 1.0.4 - 2026-04-23
 
 ### Added

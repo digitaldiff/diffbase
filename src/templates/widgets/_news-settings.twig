@@ -1,0 +1,12 @@
+{% import '_includes/forms' as forms %}
+
+{{ forms.textField({
+    label: 'Offset',
+    instructions: 'Which entry to show (0 = first, 1 = second, …)',
+    id: 'offset',
+    name: 'offset',
+    value: widget.offset,
+    type: 'number',
+    min: 0,
+    size: 3
+}) }}
