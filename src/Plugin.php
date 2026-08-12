@@ -15,6 +15,7 @@ use craft\web\View;
 use digitaldiff\diffbase\widgets\NewsWidget;
 use digitaldiff\diffbase\widgets\SupportWidget;
 use digitaldiff\diffbase\widgets\TechWidget;
+use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -67,7 +68,7 @@ class Plugin extends BasePlugin
      * This method is called automatically when the plugin is loaded. It sets up
      * aliases, registers template paths, defines URL rules, and adds a control panel
      * navigation item (visible only to admins).
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function init(): void
     {
@@ -88,9 +89,9 @@ class Plugin extends BasePlugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
-                $event->rules['api/info'] = 'diffbase/api/info'; // Bestehend
-                $event->rules['diffbase/support/send-email'] = 'diffbase/support/send-email'; // Support E-Mail
-//                $event->rules['actions/diffbase/update/composer-update'] = 'diffbase/update/composer-update'; // Neu
+                $event->rules['api/info'] = 'diffbase/api/info'; // API Endpoint for general info
+                // $event->rules['diffbase/support/send-email'] = 'diffbase/support/send-email'; // Support E-Mail
+                $event->rules['actions/diffbase/update/composer-update'] = 'diffbase/update/composer-update'; // Composer Update Action
             }
         );
 
@@ -143,12 +144,12 @@ class Plugin extends BasePlugin
                 $this->_registerMarkerIo();
             }
 
-            /*$view->registerCss(<<<CSS
+            $view->registerCss(<<<CSS
             #newwidgetmenubtn,
             #widgetManagerBtn {
                 display: none;
             }
-            CSS);*/
+            CSS);
         }
 
     }
@@ -162,20 +163,19 @@ class Plugin extends BasePlugin
 
         // Registriere das Marker.io Script
         $view->registerJs(<<<JS
-window.markerConfig = {
-    project: '69e9e09e6db37199a4367b01', 
-    source: 'snippet'
-};
-
-!function(e,r,a){if(!e.__Marker){e.__Marker={};var t=[],n={__cs:t};["show","hide","isVisible","capture","cancelCapture","unload","reload","isExtensionInstalled","setReporter","clearReporter","setCustomData","on","off"].forEach(function(e){n[e]=function(){var r=Array.prototype.slice.call(arguments);r.unshift(e),t.push(r)}}),e.Marker=n;var s=r.createElement("script");s.async=1,s.src="https://edge.marker.io/latest/shim.js";var i=r.getElementsByTagName("script")[0];i.parentNode.insertBefore(s,i)}}(window,document);
-JS
+            window.markerConfig = {
+            project: '69e9e09e6db37199a4367b01', 
+            source: 'snippet'
+        };
+        !function(e,r,a){if(!e.__Marker){e.__Marker={};var t=[],n={__cs:t};["show","hide","isVisible","capture","cancelCapture","unload","reload","isExtensionInstalled","setReporter","clearReporter","setCustomData","on","off"].forEach(function(e){n[e]=function(){var r=Array.prototype.slice.call(arguments);r.unshift(e),t.push(r)}}),e.Marker=n;var s=r.createElement("script");s.async=1,s.src="https://edge.marker.io/latest/shim.js";var i=r.getElementsByTagName("script")[0];i.parentNode.insertBefore(s,i)}}(window,document);
+        JS
         , \yii\web\View::POS_HEAD);
 
         Craft::info('Marker.io Bug-Reporting-Tool wurde im Control Panel registriert', __METHOD__);
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     private function _addWidgetsToDashboard(): void
     {

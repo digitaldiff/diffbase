@@ -9,7 +9,7 @@ class MessageWidget extends Widget
 {
     public static function displayName(): string
     {
-        return Craft::t('app', 'Wichtige Informationen');
+        return Craft::t('app', 'Informationen');
     }
 
     public static function iconPath(): ?string
@@ -32,7 +32,7 @@ class MessageWidget extends Widget
             }
 
             // Fetch the alert icon
-            $iconPath = Craft::getAlias('@app/icons/alert.svg');
+            $iconPath = Craft::getAlias('@app/icons/info.svg');
             $icon = file_exists($iconPath) ? file_get_contents($iconPath) : '';
 
             // Add a width of 50px to the SVG
@@ -41,9 +41,10 @@ class MessageWidget extends Widget
             }
 
             // Build the HTML with the icon and fetched content
+            $html .= '<style>#widget' . $this->id . ' .pane { background: #ffe9d7; }</style>';
             $html .= '<div class="message-widget" style="display:flex;gap:30px;justify-content: space-between;">';
             $html .= '    <div class="content">' . $response . '</div>';
-            $html .= '    <div class="icon">' . $icon . '</div>';
+//            $html .= '    <div class="icon">' . $icon . '</div>';
             $html .= '</div>';
         } catch (\Exception $e) {
             // Return null if an exception occurs

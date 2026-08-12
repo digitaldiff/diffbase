@@ -16,14 +16,14 @@ Only works/tested with Craft CMS 5.x
 ## roadmap / ideas
 - domain check
 - spf check
-- licence infos
-- history (uptime)
+- ~~licence infos~~
+- ~~history (uptime)~~
 - default dashboard widgets
-  - contact
-  - support
-  - urgent informations
-  - diff.blog
+  - ~~contact~~
+  - ~~techradar~~
+  - ~~urgent informations~~
+  - ~~diff.blog~~
 - start que from dashboard
 - empty cache from dashboard
-- go directly to /admin
+- ~~go directly to /admin~~
 - 

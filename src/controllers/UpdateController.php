@@ -20,16 +20,18 @@ class UpdateController extends Controller
             Craft::$app->getRequest()->getHeaders()->get('X-API-Key');
 
         if (!$providedKey || $providedKey !== $settings->apiKey) {
-            return $this->asJson(['error' => 'Invalid API key'], 401);
+            Craft::$app->getResponse()->setStatusCode(401);
+            return $this->asJson(['error' => 'Invalid API key']);
         }
 
         set_time_limit(300);
 
         $command = 'cd ' . CRAFT_BASE_PATH . ' && composer update digitaldiff/diffbase 2>&1';
-        $output = shell_exec($command);
+        exec($command, $outputLines, $exitCode);
+        $output = implode("\n", $outputLines);
 
         return $this->asJson([
-            'success' => !str_contains($output, 'error'),
+            'success' => $exitCode === 0,
             'output' => $output,
             'timestamp' => date('Y-m-d H:i:s')
         ]);

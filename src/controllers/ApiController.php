@@ -26,6 +26,7 @@ class ApiController extends Controller
             'modules' => $this->getModulesInfo(),
             'config' => $this->getConfigInfo(),
             'sites' => $this->getSitesInfo(),
+            'users' => $this->getUsersInfo(),
             'queue' => $this->getQueueInfo(),
             'mail' => $this->getMailInfo(),
             'formie' => $this->getFormieInfo(),
@@ -59,8 +60,6 @@ class ApiController extends Controller
             'version' => PHP_VERSION,
             'memory_limit' => ini_get('memory_limit'),
             'max_execution_time' => ini_get('max_execution_time'),
-            'memory_usage' => $this->formatBytes(memory_get_usage(true)),
-            'peak_memory' => $this->formatBytes(memory_get_peak_usage(true)),
             'sapi' => PHP_SAPI,
             'max_upload_size' => ini_get('upload_max_filesize'),
             'proc_open_available' => function_exists('proc_open'),
@@ -73,6 +72,8 @@ class ApiController extends Controller
         $sites = [];
 
         foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            $reachability = $site->hasUrls ? $this->checkSiteReachability($site->baseUrl) : ['reachable' => null, 'status_code' => null];
+
             $sites[] = [
                 'id' => $site->id,
                 'handle' => $site->handle,
@@ -83,11 +84,63 @@ class ApiController extends Controller
                 'base_url' => $site->baseUrl,
                 'has_urls' => $site->hasUrls,
                 'group_id' => $site->groupId,
-                'sort_order' => $site->sortOrder
+                'sort_order' => $site->sortOrder,
+                'reachable' => $reachability['reachable'],
+                'http_status' => $reachability['status_code'],
             ];
         }
 
         return $sites;
+    }
+
+    private function checkSiteReachability(string $url): array
+    {
+        try {
+            $client = Craft::createGuzzleClient([
+                'timeout' => 5,
+                'connect_timeout' => 3,
+                'allow_redirects' => true,
+                'http_errors' => false,
+            ]);
+            $response = $client->head($url);
+            $statusCode = $response->getStatusCode();
+
+            return [
+                'reachable' => $statusCode >= 200 && $statusCode < 400,
+                'status_code' => $statusCode,
+            ];
+        } catch (\Throwable) {
+            return [
+                'reachable' => false,
+                'status_code' => null,
+            ];
+        }
+    }
+
+    private function getUsersInfo(): array
+    {
+        try {
+            $query = \craft\elements\User::find()->status(null);
+
+            $lastAdminLogin = \craft\elements\User::find()
+                ->status(null)
+                ->admin()
+                ->orderBy(['lastLoginDate' => SORT_DESC])
+                ->one();
+
+            return [
+                'total' => (clone $query)->count(),
+                'admins' => (clone $query)->admin()->count(),
+                'pending' => (clone $query)->status(\craft\elements\User::STATUS_PENDING)->count(),
+                'suspended' => (clone $query)->status(\craft\elements\User::STATUS_SUSPENDED)->count(),
+                'locked' => (clone $query)->status(\craft\elements\User::STATUS_LOCKED)->count(),
+                'last_admin_login' => $lastAdminLogin?->lastLoginDate?->format('c'),
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => 'Could not load user info: ' . $e->getMessage()
+            ];
+        }
     }
 
     private function getServerInfo(): array
@@ -132,13 +185,7 @@ class ApiController extends Controller
                 'description' => $plugin->description ?? null,
                 'documentation_url' => $plugin->documentationUrl ?? null,
                 'package_name' => $plugin->packageName ?? null,
-                'edition' => $pluginInfo['edition'] ?? null,
-                'has_cp_settings' => $pluginInfo['hasCpSettings'] ?? false,
-                'license_key_status' => $pluginInfo['licenseKeyStatus'] ?? null,
-                'is_trial' => $pluginInfo['isTrial'] ?? false,
-                'upgrade_available' => $pluginInfo['upgradeAvailable'] ?? false,
-                'has_issues' => Craft::$app->getPlugins()->hasIssues($plugin->handle),
-                'update_available' => $plugin->upgradeAvailable ?? null
+                'has_issues' => Craft::$app->getPlugins()->hasIssues($plugin->handle)
             ];
         }
 
@@ -242,16 +289,23 @@ class ApiController extends Controller
     private function getQueueInfo(): array
     {
         $queue = Craft::$app->getQueue();
+        $db = Craft::$app->getDb();
 
         try {
+            $base = (new \yii\db\Query())->from('{{%queue}}');
+
+            $total = (int) (clone $base)->count('*', $db);
+            $waiting = (int) (clone $base)->where(['fail' => false, 'timeUpdated' => null])->count('*', $db);
+            $reserved = (int) (clone $base)->where(['fail' => false])->andWhere(['not', ['timeUpdated' => null]])->count('*', $db);
+            $failed = (int) (clone $base)->where(['fail' => true])->count('*', $db);
+
             return [
-                'total_jobs' => $this->getQueueJobsCount('total'),
-                'waiting_jobs' => $this->getQueueJobsCount('waiting'),
-                'reserved_jobs' => $this->getQueueJobsCount('reserved'),
-                'done_jobs' => $this->getQueueJobsCount('done'),
-                'failed_jobs' => $this->getQueueJobsCount('failed'),
+                'total_jobs' => $total,
+                'waiting_jobs' => $waiting,
+                'reserved_jobs' => $reserved,
+                'failed_jobs' => $failed,
                 'queue_class' => get_class($queue),
-                'is_running' => method_exists($queue, 'getHasReservedJobs') ? $queue->getHasReservedJobs() : null,
+                'is_running' => $reserved > 0,
                 'recent_failed_jobs' => $this->getRecentFailedJobs()
             ];
         } catch (\Exception $e) {
@@ -262,60 +316,22 @@ class ApiController extends Controller
         }
     }
 
-    private function getQueueJobsCount(string $type): int
-    {
-        try {
-            $query = Craft::$app->getDb()->createCommand();
-
-            switch ($type) {
-                case 'total':
-                    $query->select('COUNT(*)')->from('{{%queue}}');
-                    break;
-                case 'waiting':
-                    $query->select('COUNT(*)')->from('{{%queue}}')
-                        ->where(['fail' => false, 'timeUpdated' => null]);
-                    break;
-                case 'reserved':
-                    $query->select('COUNT(*)')->from('{{%queue}}')
-                        ->where(['fail' => false])
-                        ->andWhere(['not', ['timeUpdated' => null]])
-                        ->andWhere(['timePushed' => null]);
-                    break;
-                case 'done':
-                    $query->select('COUNT(*)')->from('{{%queue}}')
-                        ->where(['fail' => false])
-                        ->andWhere(['not', ['timePushed' => null]]);
-                    break;
-                case 'failed':
-                    $query->select('COUNT(*)')->from('{{%queue}}')
-                        ->where(['fail' => true]);
-                    break;
-                default:
-                    return 0;
-            }
-
-            return (int) $query->queryScalar();
-        } catch (\Exception $e) {
-            return 0;
-        }
-    }
-
     private function getRecentFailedJobs(int $limit = 5): array
     {
         try {
-            $jobs = Craft::$app->getDb()->createCommand()
-                ->select(['id', 'job', 'description', 'timeFailed', 'error'])
+            $jobs = (new \yii\db\Query())
+                ->select(['id', 'description', 'dateFailed', 'error'])
                 ->from('{{%queue}}')
                 ->where(['fail' => true])
-                ->orderBy(['timeFailed' => SORT_DESC])
+                ->orderBy(['dateFailed' => SORT_DESC])
                 ->limit($limit)
-                ->queryAll();
+                ->all(Craft::$app->getDb());
 
-            return array_map(function($job) {
+            return array_map(function ($job) {
                 return [
                     'id' => (int) $job['id'],
                     'description' => $job['description'],
-                    'time_failed' => $job['timeFailed'],
+                    'date_failed' => $job['dateFailed'],
                     'error' => $job['error'] ? substr($job['error'], 0, 200) . '...' : null
                 ];
             }, $jobs);
@@ -347,32 +363,29 @@ class ApiController extends Controller
 
     private function getTransportSettings(array $config): array
     {
-        $transportType = $config['transportType'] ?? 'sendmail';
+        $transportType = $config['transportType'] ?? \craft\mail\transportadapters\Sendmail::class;
         $settings = $config['transportSettings'] ?? [];
 
         // Nur sichere Einstellungen zurückgeben, keine Passwörter
-        switch ($transportType) {
-            case 'smtp':
-                return [
-                    'host' => $settings['host'] ?? null,
-                    'port' => $settings['port'] ?? null,
-                    'username' => $settings['username'] ?? null,
-                    'encryption_method' => $settings['encryptionMethod'] ?? null,
-                    'timeout' => $settings['timeout'] ?? null,
-                    'auth_required' => !empty($settings['username'])
-                ];
-            case 'gmail':
-                return [
-                    'username' => $settings['username'] ?? null,
-                    'timeout' => $settings['timeout'] ?? null
-                ];
-            case 'sendmail':
-                return [
-                    'command' => $settings['command'] ?? '/usr/sbin/sendmail -bs'
-                ];
-            default:
-                return [];
-        }
+        // transportType ist der volle Klassenname des Transport-Adapters (z.B. craft\mail\transportadapters\Smtp)
+        return match ($transportType) {
+            \craft\mail\transportadapters\Smtp::class => [
+                'host' => $settings['host'] ?? null,
+                'port' => $settings['port'] ?? null,
+                'username' => $settings['username'] ?? null,
+                'encryption_method' => $settings['encryptionMethod'] ?? null,
+                'timeout' => $settings['timeout'] ?? null,
+                'auth_required' => !empty($settings['username'])
+            ],
+            \craft\mail\transportadapters\Gmail::class => [
+                'username' => $settings['username'] ?? null,
+                'timeout' => $settings['timeout'] ?? null
+            ],
+            \craft\mail\transportadapters\Sendmail::class => [
+                'command' => $settings['command'] ?? '/usr/sbin/sendmail -bs'
+            ],
+            default => [],
+        };
     }
 
     private function getUpdatesInfo(): array
