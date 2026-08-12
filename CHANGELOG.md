@@ -4,6 +4,7 @@
 
 ### Added
 - `/api/info` liefert jetzt einen `users`-Block (`total`, `admins`, `pending`, `suspended`, `locked`, `last_admin_login`) — bewusst ohne Namen/E-Mail, da der Endpoint nur über einen statischen Key geschützt ist
+- Update-Endpoint (`UpdateController::actionComposerUpdate`): `Access-Control-Allow-Origin: https://flow.diff.ch` gesetzt, damit das zentrale Monitoring-Dashboard den Update-Trigger per AJAX auslösen und das Ergebnis direkt inline anzeigen kann, statt in einem neuen Tab zu landen
 
 ### Fixed
 - `getPluginsInfo()`: 5 Felder (`edition`, `has_cp_settings`, `license_key_status`, `is_trial`, `update_available`) lieferten für jedes Plugin immer `null`/`false` wegen einer nie definierten Variable `$pluginInfo` — entfernt (die Update-Info steht bereits korrekt unter `updates.plugins`)

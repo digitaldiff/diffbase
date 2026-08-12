@@ -13,6 +13,8 @@ class UpdateController extends Controller
 
     public function actionComposerUpdate(): Response
     {
+        Craft::$app->getResponse()->getHeaders()->set('Access-Control-Allow-Origin', 'https://flow.diff.ch');
+
         $plugin = Craft::$app->getPlugins()->getPlugin('diffbase');
         $settings = $plugin->getSettings();
 
