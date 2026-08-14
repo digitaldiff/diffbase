@@ -42,13 +42,9 @@ class UpdateController extends Controller
             ]);
         }
 
-        $composerBinary = (new ExecutableFinder())->find('composer', null, [
-            '/usr/local/bin',
-            '/usr/bin',
-            '/opt/homebrew/bin',
-            getenv('HOME') . '/.composer/vendor/bin',
-            getenv('HOME') . '/bin',
-        ]);
+        $composerBinary = $settings->composerPath && is_executable($settings->composerPath)
+            ? $settings->composerPath
+            : (new ExecutableFinder())->find('composer', null, $this->composerSearchDirs());
 
         if (!$composerBinary) {
             return $this->asJson([
@@ -79,5 +75,36 @@ class UpdateController extends Controller
             'output' => $output,
             'timestamp' => date('Y-m-d H:i:s')
         ]);
+    }
+
+    /**
+     * Common locations for the composer binary on Managed-/Shared-Hosting.
+     *
+     * `getenv('HOME')` is unreliable under PHP-FPM (often empty even though the CLI/SSH
+     * session for the same user has it set), so the home directory is resolved via
+     * `posix_getpwuid()` instead, which reads it directly from the OS user database.
+     */
+    private function composerSearchDirs(): array
+    {
+        $home = null;
+        if (function_exists('posix_getpwuid') && function_exists('posix_getuid')) {
+            $home = posix_getpwuid(posix_getuid())['dir'] ?? null;
+        }
+        $home ??= getenv('HOME') ?: null;
+
+        $dirs = [
+            '/usr/local/bin',
+            '/usr/bin',
+            '/opt/homebrew/bin',
+            '/opt/cpanel/composer/bin', // cPanel Composer Manager
+        ];
+
+        if ($home) {
+            $dirs[] = $home . '/bin'; // cyon und viele weitere Hoster
+            $dirs[] = $home . '/.composer/vendor/bin';
+            $dirs[] = $home . '/.local/bin';
+        }
+
+        return $dirs;
     }
 }

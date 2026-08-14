@@ -205,8 +205,8 @@ class Plugin extends BasePlugin
         $dashboardService->saveWidget($contactWidget);
 
         // Add the News Widget
-        $newsWidget = new NewsWidget();
-        $dashboardService->saveWidget($newsWidget);
+/*        $newsWidget = new NewsWidget();
+        $dashboardService->saveWidget($newsWidget);*/
 
 /*        // Add the Support Widget
         $supportWidget = new SupportWidget();
@@ -214,7 +214,7 @@ class Plugin extends BasePlugin
         $dashboardService->changeWidgetColspan($supportWidget->id, 1);*/
 
 
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 8; $i++) {
             $techWidget = new TechWidget();
             $techWidget->offset = $i;
             $dashboardService->saveWidget($techWidget);

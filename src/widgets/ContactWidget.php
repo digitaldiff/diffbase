@@ -9,7 +9,7 @@ class ContactWidget extends Widget
 {
     public static function displayName(): string
     {
-        return Craft::t('app', 'Kontakt');
+        return Craft::t('app', 'Support & Kontakt');
     }
 
     public static function iconPath(): ?string

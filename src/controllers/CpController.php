@@ -129,6 +129,30 @@ class CpController extends Controller
     }
 
     /**
+     * Saves a manual override for the composer binary path.
+     *
+     * Only needed when the automatic search (PATH + common install locations) can't
+     * find composer on this specific host.
+     *
+     * @throws MissingComponentException If a required component is missing.
+     * @throws MethodNotAllowedHttpException If the request method is not allowed.
+     * @throws BadRequestHttpException If the request is invalid.
+     * @return Response A redirect response to the posted URL.
+     */
+    public function actionSaveComposerPath(): Response
+    {
+        $this->requirePostRequest();
+
+        $composerPath = Craft::$app->getRequest()->getBodyParam('composerPath');
+        $composerPath = $composerPath !== '' ? $composerPath : null;
+
+        Craft::$app->plugins->savePluginSettings(Plugin::getInstance(), ['composerPath' => $composerPath]);
+        Craft::$app->getSession()->setNotice('Composer-Pfad gespeichert.');
+
+        return $this->redirectToPostedUrl();
+    }
+
+    /**
      * Renders the settings page for the plugin.
      *
      * - Initializes the plugin and its settings.

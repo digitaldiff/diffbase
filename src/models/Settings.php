@@ -20,15 +20,24 @@ class Settings extends Model
     public ?string $apiKey = null;
 
     /**
+     * @var string|null $composerPath Absoluter Pfad zum composer-Binary. Wird nur benötigt, wenn
+     * die automatische Suche (PATH + gängige Standardorte) das Binary auf diesem Host nicht findet.
+     * Leer = automatische Erkennung.
+     */
+    public ?string $composerPath = null;
+
+    /**
      * Returns the validation rules for the model's attributes.
      *
-     * @return array The validation rules for the `apiKey` attribute.
+     * @return array The validation rules for the `apiKey` and `composerPath` attributes.
      */
     public function rules(): array
     {
         return [
             ['apiKey', 'string'], // Ensures the API key is a string.
             ['apiKey', 'default', 'value' => null], // Sets the default value of the API key to null.
+            ['composerPath', 'string'],
+            ['composerPath', 'default', 'value' => null],
         ];
     }
 

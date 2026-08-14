@@ -64,6 +64,23 @@ Notes:
         </div>
       {% endif %}
 
+      <div class="field">
+        <div class="heading">
+          <label>Composer-Pfad (optional)</label>
+          <div class="instructions">
+            <p>Nur nötig, falls das Composer-Update fehlschlägt, weil das Binary auf diesem Server automatisch nicht gefunden wird. Absoluten Pfad eintragen, z.B. <code>/opt/cpanel/composer/bin/composer</code>. Leer lassen für automatische Erkennung.</p>
+          </div>
+        </div>
+        <div class="input">
+          <form method="post" action="{{ actionUrl('diffbase/cp/save-composer-path') }}" class="flex" style="gap: 10px; align-items: center;">
+            {{ csrfInput() }}
+            {{ redirectInput('_diffbase') }}
+            <input type="text" name="composerPath" value="{{ settings.composerPath }}" class="text fullwidth" placeholder="automatische Erkennung">
+            <button type="submit" class="btn submit">Speichern</button>
+          </form>
+        </div>
+      </div>
+
       <hr>
     </div>
   </div>

@@ -58,7 +58,7 @@ class TechWidget extends Widget
             return;
         }
 
-        $url = 'https://techradar.diff.ch/cpwidgets/news2?offset=' . $this->offset;
+        $url = 'https://www.diff.ch/cpwidgets/news2?offset=' . $this->offset;
 
         try {
             $response = file_get_contents($url);
