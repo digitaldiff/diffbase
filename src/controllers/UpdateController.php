@@ -55,10 +55,13 @@ class UpdateController extends Controller
         }
 
         try {
+            $home = $this->resolveHome();
+            $env = $home ? ['HOME' => $home, 'COMPOSER_HOME' => $home . '/.composer'] : null;
+
             $process = new Process(
                 [$composerBinary, 'update', 'digitaldiff/diffbase', '--no-interaction'],
                 CRAFT_BASE_PATH,
-                null,
+                $env,
                 null,
                 300
             );
@@ -78,19 +81,27 @@ class UpdateController extends Controller
     }
 
     /**
-     * Common locations for the composer binary on Managed-/Shared-Hosting.
+     * Resolves the home directory of the user running PHP.
      *
      * `getenv('HOME')` is unreliable under PHP-FPM (often empty even though the CLI/SSH
      * session for the same user has it set), so the home directory is resolved via
      * `posix_getpwuid()` instead, which reads it directly from the OS user database.
      */
-    private function composerSearchDirs(): array
+    private function resolveHome(): ?string
     {
         $home = null;
         if (function_exists('posix_getpwuid') && function_exists('posix_getuid')) {
             $home = posix_getpwuid(posix_getuid())['dir'] ?? null;
         }
-        $home ??= getenv('HOME') ?: null;
+        return $home ?: (getenv('HOME') ?: null);
+    }
+
+    /**
+     * Common locations for the composer binary on Managed-/Shared-Hosting.
+     */
+    private function composerSearchDirs(): array
+    {
+        $home = $this->resolveHome();
 
         $dirs = [
             '/usr/local/bin',

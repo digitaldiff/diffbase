@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- Composer-Update schlug mit „The HOME or COMPOSER_HOME environment variable must be set“ fehl, weil dem `Process` für den `composer update`-Aufruf keine Umgebungsvariablen übergeben wurden — `HOME`/`COMPOSER_HOME` werden nun (wie bereits bei der Binary-Suche) über `posix_getpwuid()` aufgelöst und an den Prozess weitergereicht
+
 ## 5.1.2 - 2026-08-12
 
 ### Added
