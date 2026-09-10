@@ -138,8 +138,9 @@ class Plugin extends BasePlugin
         if (Craft::$app->getRequest()->isCpRequest) {
             $this->_addWidgetsToDashboard();
             $view = Craft::$app->getView();
+            $user = Craft::$app->getUser();
 
-            if (Craft::$app->getUser()->getIdentity()) {
+            if ($user->getIdentity() && !$user->getIsAdmin()) {
                 // Registriere Marker.io für Bug-Reporting im gesamten Control Panel
                 $this->_registerMarkerIo();
             }
