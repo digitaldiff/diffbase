@@ -9,6 +9,8 @@ use craft\base\Widget;
 
 class NewsWidget extends Widget
 {
+    use AddedByPluginTrait;
+
     public int $offset = 0;
 
     private ?string $_html = null;

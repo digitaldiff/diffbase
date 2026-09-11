@@ -2,7 +2,19 @@
 
 ## [Unreleased]
 
+### Added
+- Einstellung „Dashboard-Widgets ausblenden“ (`disableWidgets`) auf der Plugin-Seite: das Plugin setzt seine Widgets nicht mehr aufs Dashboard und entfernt die bereits gesetzten bei jedem Benutzer beim nächsten CP-Aufruf — gilt für alle Benutzer
+- Widgets merken sich, ob sie vom Plugin oder vom Benutzer hinzugefügt wurden (`addedByPlugin`, via `AddedByPluginTrait`) — selbst hinzugefügte diff.-Widgets bleiben beim Ausblenden erhalten. Widgets aus älteren Versionen (ohne Flag) gelten als vom Plugin gesetzt
+- Eigene Widgets eines Benutzers werden beim Übernehmen des Dashboards durch das Plugin in den User-Preferences (`diffbaseWidgets`) gesichert und beim Ausblenden der Plugin-Widgets wiederhergestellt
+- „Feedback geben“-Button am rechten Rand aller CP-Seiten (nur Nicht-Admins): lädt Marker.io erst beim Klick und öffnet direkt die Erfassung. Danach ersetzt der Marker.io-Button den eigenen Button bis zum nächsten Seitenaufruf. E-Mail und voller Name des Craft-Benutzers werden als Reporter vorausgefüllt (`Marker.setReporter()`) — ohne Namen wird der Systemname verwendet
+- Einstellung „Feedback-Button ausblenden“ (`disableFeedback`) auf der Plugin-Seite: blendet den Button für alle Benutzer aus, Marker.io wird dann nie geladen. Unabhängig von „Dashboard-Widgets ausblenden“
+
+### Changed
+- Marker.io wird nicht mehr bei jedem CP-Aufruf geladen, sondern erst beim Klick auf den „Feedback geben“-Button
+
 ### Fixed
+- Speichern einer Einstellung auf der Plugin-Seite verwarf die übrigen Einstellungen (u. a. wurde dadurch ein neuer API-Key generiert) — es werden nun immer alle Einstellungen gespeichert
+- Formulare auf der Plugin-Seite leiteten nach dem Speichern auf `/admin/_diffbase` (404) statt auf `/admin/diffbase` weiter
 - Composer-Update schlug mit „The HOME or COMPOSER_HOME environment variable must be set“ fehl, weil dem `Process` für den `composer update`-Aufruf keine Umgebungsvariablen übergeben wurden — `HOME`/`COMPOSER_HOME` werden nun (wie bereits bei der Binary-Suche) über `posix_getpwuid()` aufgelöst und an den Prozess weitergereicht
 
 ## 5.1.2 - 2026-08-12

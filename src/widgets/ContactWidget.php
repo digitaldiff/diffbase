@@ -7,6 +7,8 @@ use craft\base\Widget;
 
 class ContactWidget extends Widget
 {
+    use AddedByPluginTrait;
+
     public static function displayName(): string
     {
         return Craft::t('app', 'Support & Kontakt');

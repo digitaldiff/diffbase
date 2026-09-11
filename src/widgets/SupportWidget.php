@@ -7,6 +7,8 @@ use craft\base\Widget;
 
 class SupportWidget extends Widget
 {
+    use AddedByPluginTrait;
+
     public static function displayName(): string
     {
         return Craft::t('app', 'Hilfe & Support');

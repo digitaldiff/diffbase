@@ -27,9 +27,21 @@ class Settings extends Model
     public ?string $composerPath = null;
 
     /**
+     * @var bool $disableWidgets Stops the plugin from putting its widgets on the dashboard on every
+     * CP request. The dashboard can then be edited freely.
+     */
+    public bool $disableWidgets = false;
+
+    /**
+     * @var bool $disableFeedback Hides the "Feedback geben" button in the control panel, so Marker.io
+     * is never loaded.
+     */
+    public bool $disableFeedback = false;
+
+    /**
      * Returns the validation rules for the model's attributes.
      *
-     * @return array The validation rules for the `apiKey` and `composerPath` attributes.
+     * @return array The validation rules for the `apiKey`, `composerPath`, `disableWidgets` and `disableFeedback` attributes.
      */
     public function rules(): array
     {
@@ -38,6 +50,8 @@ class Settings extends Model
             ['apiKey', 'default', 'value' => null], // Sets the default value of the API key to null.
             ['composerPath', 'string'],
             ['composerPath', 'default', 'value' => null],
+            ['disableWidgets', 'boolean'],
+            ['disableFeedback', 'boolean'],
         ];
     }
 

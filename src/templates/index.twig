@@ -8,6 +8,9 @@ Template Details:
 
 Variables:
 - `settings.apiKey`: The current API key stored in the plugin settings.
+- `settings.composerPath`: Optional manual override for the composer binary path.
+- `settings.disableWidgets`: Whether the plugin's own dashboard widgets are skipped.
+- `settings.disableFeedback`: Whether the feedback button (Marker.io) on the dashboard is hidden.
 
 Blocks:
 - `content`: Contains the main content of the settings page, including the API key management interface.
@@ -17,6 +20,7 @@ Notes:
 - The `copyApiKey` JavaScript function uses Craft's `Craft.cp.displayNotice` for user feedback.
 #}
 {% extends "_layouts/cp" %}
+{% import '_includes/forms' as forms %}
 {% set title = "diff. base plugin" %}
 {% set crumbs = [
   { label: "Settings"|t, url: url('settings') },
@@ -45,7 +49,7 @@ Notes:
 
               <form method="post" action="{{ actionUrl('diffbase/cp/generate-api-key') }}" style="display: inline;">
                 {{ csrfInput() }}
-                {{ redirectInput('_diffbase') }}
+                {{ redirectInput('diffbase') }}
                 <button type="submit" class="btn submit">
                   {% if settings.apiKey %}
                     Neuen API-Key generieren
@@ -74,8 +78,46 @@ Notes:
         <div class="input">
           <form method="post" action="{{ actionUrl('diffbase/cp/save-composer-path') }}" class="flex" style="gap: 10px; align-items: center;">
             {{ csrfInput() }}
-            {{ redirectInput('_diffbase') }}
+            {{ redirectInput('diffbase') }}
             <input type="text" name="composerPath" value="{{ settings.composerPath }}" class="text fullwidth" placeholder="automatische Erkennung">
+            <button type="submit" class="btn submit">Speichern</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="heading">
+          <label>Dashboard-Widgets ausblenden</label>
+        </div>
+        <div class="input">
+          <form method="post" action="{{ actionUrl('diffbase/cp/save-widget-settings') }}" class="flex" style="gap: 10px; align-items: flex-start; flex-direction: column;">
+            {{ csrfInput() }}
+            {{ redirectInput('diffbase') }}
+            {{ forms.checkbox({
+              id: 'disableWidgets',
+              name: 'disableWidgets',
+              label: 'Widgets ausblenden',
+              checked: settings.disableWidgets,
+            }) }}
+            <button type="submit" class="btn submit">Speichern</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="heading">
+          <label>Feedback-Button ausblenden</label>
+        </div>
+        <div class="input">
+          <form method="post" action="{{ actionUrl('diffbase/cp/save-feedback-settings') }}" class="flex" style="gap: 10px; align-items: flex-start; flex-direction: column;">
+            {{ csrfInput() }}
+            {{ redirectInput('diffbase') }}
+            {{ forms.checkbox({
+              id: 'disableFeedback',
+              name: 'disableFeedback',
+              label: 'Button ausblenden',
+              checked: settings.disableFeedback,
+            }) }}
             <button type="submit" class="btn submit">Speichern</button>
           </form>
         </div>

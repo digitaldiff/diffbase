@@ -53,7 +53,7 @@ class CpController extends Controller
         // API-Key automatisch generieren wenn keiner vorhanden
         if (!$settings->apiKey) {
             $settings->apiKey = $settings->generateApiKey();
-            Craft::$app->plugins->savePluginSettings($plugin, ['apiKey' => $settings->apiKey]);
+            $this->saveSettings(['apiKey' => $settings->apiKey]);
             Craft::$app->getSession()->setNotice('API-Key wurde automatisch generiert.');
         }
 
@@ -72,6 +72,22 @@ class CpController extends Controller
         /** @var Settings $settings */
         $settings = Plugin::getInstance()->getSettings();
         return $settings;
+    }
+
+    /**
+     * Saves the given values on top of the current plugin settings.
+     *
+     * `savePluginSettings()` writes only the passed keys to the project config and drops
+     * all others, so the full settings array has to be sent every time.
+     *
+     * @param array $values The settings to change.
+     * @return bool Whether the settings were saved.
+     */
+    private function saveSettings(array $values): bool
+    {
+        $plugin = Plugin::getInstance();
+
+        return Craft::$app->plugins->savePluginSettings($plugin, array_merge($this->getSettings()->toArray(), $values));
     }
 
     /**
@@ -100,7 +116,7 @@ class CpController extends Controller
         $newKey = $settings->generateApiKey();
 
         // Settings über Plugin speichern
-        Craft::$app->plugins->savePluginSettings(Plugin::getInstance(), ['apiKey' => $newKey]);
+        $this->saveSettings(['apiKey' => $newKey]);
         Craft::$app->getSession()->setNotice('Neuer API-Key wurde generiert.');
 
         return $this->redirectToPostedUrl();
@@ -122,7 +138,7 @@ class CpController extends Controller
         $this->requirePostRequest();
 
         // Settings ber Plugin speichern
-        Craft::$app->plugins->savePluginSettings(Plugin::getInstance(), ['apiKey' => null]);
+        $this->saveSettings(['apiKey' => null]);
         Craft::$app->getSession()->setNotice('API-Key wurde gelöscht.');
 
         return $this->redirectToPostedUrl();
@@ -146,8 +162,53 @@ class CpController extends Controller
         $composerPath = Craft::$app->getRequest()->getBodyParam('composerPath');
         $composerPath = $composerPath !== '' ? $composerPath : null;
 
-        Craft::$app->plugins->savePluginSettings(Plugin::getInstance(), ['composerPath' => $composerPath]);
+        $this->saveSettings(['composerPath' => $composerPath]);
         Craft::$app->getSession()->setNotice('Composer-Pfad gespeichert.');
+
+        return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * Saves whether the plugin's own widgets should be added to the dashboard.
+     *
+     * - Applies to all users. Already added widgets are removed by `Plugin::init()`
+     *   on each user's next control panel request.
+     *
+     * @throws MissingComponentException If a required component is missing.
+     * @throws MethodNotAllowedHttpException If the request method is not allowed.
+     * @throws BadRequestHttpException If the request is invalid.
+     * @return Response A redirect response to the posted URL.
+     */
+    public function actionSaveWidgetSettings(): Response
+    {
+        $this->requirePostRequest();
+
+        $disableWidgets = (bool)Craft::$app->getRequest()->getBodyParam('disableWidgets');
+
+        $this->saveSettings(['disableWidgets' => $disableWidgets]);
+        Craft::$app->getSession()->setNotice('Widget-Einstellung gespeichert.');
+
+        return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * Saves whether the feedback button (Marker.io) is shown in the control panel.
+     *
+     * - Applies to all non-admin users, independent of the widget setting.
+     *
+     * @throws MissingComponentException If a required component is missing.
+     * @throws MethodNotAllowedHttpException If the request method is not allowed.
+     * @throws BadRequestHttpException If the request is invalid.
+     * @return Response A redirect response to the posted URL.
+     */
+    public function actionSaveFeedbackSettings(): Response
+    {
+        $this->requirePostRequest();
+
+        $disableFeedback = (bool)Craft::$app->getRequest()->getBodyParam('disableFeedback');
+
+        $this->saveSettings(['disableFeedback' => $disableFeedback]);
+        Craft::$app->getSession()->setNotice('Feedback-Einstellung gespeichert.');
 
         return $this->redirectToPostedUrl();
     }
